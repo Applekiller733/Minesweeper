@@ -24,6 +24,7 @@ public:
     void removeMine(){this->isMine = false;}
     bool getMine(){return this->isMine;};
     void setFlag();
+    bool getFlag();
     void setReveal(){this->isRevealed = true;};
     bool getReveal(){return this->isRevealed;};
 };

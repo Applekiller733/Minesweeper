@@ -36,16 +36,18 @@ bool Repository::checkMine(int row, int col) {
     return false;
 }
 
+bool Repository::checkFlagged(int row, int col) {
+    if (this->board[row][col].getFlag())
+        return true;
+    return false;
+}
+
 bool Repository::validRow(int row) {
     return (row >= 0 && row < this->rowcnt);
 }
 
 bool Repository::validCol(int col) {
     return (col >= 0 && col < this->colcnt);
-}
-
-void Repository::flagSquare(int row, int col) {
-    this->board[row][col].setFlag();
 }
 
 void Repository::mineSquare(int row, int col) {
@@ -127,11 +129,12 @@ void Repository::blankifyArea(int row, int col) {
                     this->minecnt --;
                     for (int i = row - 1; i <= row + 1; i++)
                         for(int j = col - 1; j <= col + 1; j++){
-                            if (this->validRow(i) && this->validCol(j)) {
+                            if (this->validRow(i) && this->validCol(j) && (i != row || j != col)) {
                                 if (this->checkMine(i, j))
                                     blankifyArea(i, j);
-                                else if ( i != row || j != col ) {
+                                else {
                                     this->board[i][j].decrementCount();
+                                   // this->revealSquare(i, j);
                                 }
                             }
                         }
@@ -139,6 +142,17 @@ void Repository::blankifyArea(int row, int col) {
                 this->revealSquare(row, col);
             }
 }
+
+bool Repository::checkWinCond() {
+    /*
+     * Checks if win condition is achieved by checking if number of revealed squares is equal to all
+     * squares - mines
+     * */
+    if (this->revealed == this->rowcnt * this->colcnt - this->minecnt)
+        return true;
+    return false;
+}
+
 
 void Repository::revealSquare(int row, int col) {
     /*
@@ -148,19 +162,33 @@ void Repository::revealSquare(int row, int col) {
      * If it is the first click, game ensures first clicked square and area around it is not made of mines*/
     if (this->validRow(row) && this->validCol(col)) {
         if (this->firstclick) {
-            //set click area blank
+            //set click area blank if mine
             this->firstclick = false;
             this->blankifyArea(row, col);
         } else {
-            this->board[row][col].setReveal();
-            if (this->checkMine(row, col)){
-                std::cout << "Game over!\n";
-                exit(0);
-            }
-            if (this->board[row][col].getCount() == 0){
-                this->revealBlanks(row, col);
+            if (!this->board[row][col].getReveal() && !this->checkFlagged(row, col)) {
+                this->board[row][col].setReveal();
+                this->revealed++;
+
+                if (this->checkMine(row, col)) {
+                    std::cout << "Game over!\n";
+                    exit(0);
+                }
+                if (this->board[row][col].getCount() == 0) {
+                    this->revealBlanks(row, col);
+                }
+                if (this->checkWinCond()) {
+                    std::cout << "Game won!\n";
+                    exit(0);
+                }
             }
         }
     }
 }
 
+void Repository::flagSquare(int row, int col) {
+    if (this->validRow(row) && this->validCol(col)){
+        if (!this->board[row][col].getReveal())
+            this->board[row][col].setFlag();
+    }
+}

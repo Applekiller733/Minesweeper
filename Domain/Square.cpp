@@ -28,3 +28,7 @@ void Square::setFlag() {
 
     }
 }
+
+bool Square::getFlag() {
+    return this->isFlagged;
+}

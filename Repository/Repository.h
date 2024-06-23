@@ -15,6 +15,7 @@ private:
     int colcnt = 9;
     int minecnt = 0;
     bool firstreveal = true;
+    int revealed = 0;
     std::vector<std::vector<Square>> board;
 public:
     Repository(int rowcnt, int colcnt, int minecnt);
@@ -22,18 +23,22 @@ public:
     void generateCounts();
     void parseNeighborsCnt(int row, int col);
     void addSquare(int row, int col);
-    void flagSquare(int row, int col);
     void mineSquare(int row, int col);
     bool validRow(int row);
     bool validCol(int col);
     bool checkMine(int row, int col);
+    bool checkFlagged(int row, int col);
 
     void blankifyArea(int row, int col);
     void revealBlanks(int row, int col);
     void parseNeighborsRev(int row, int col);
     void revealSquare(int row, int col);
+    void flagSquare(int row, int col);
+
+    bool checkWinCond();
 
     friend std::ostream& operator<<(std::ostream& os, Repository repo){
+
         for(int i = 0; i < repo.rowcnt; i++) {
             for (int j = 0; j < repo.colcnt; j++) {
                 if (repo.board[i][j].getReveal()) {
@@ -45,8 +50,10 @@ public:
                     else
                         os << "M" << " ";
                 }
-                else
+                else if (!repo.checkFlagged(i, j))
                     os << "?" << " ";
+                else
+                    os << "F" << " ";
             }
             os << "\n";
         }
